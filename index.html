@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>フリマ手数料・利益計算機｜メルカリ・Yahoo!フリマ・ラクマ・Amazon比較</title>
+<meta name="description" content="仕入れ値と送料を入れるだけで、メルカリ・Yahoo!フリマ・ラクマ・Amazonの手取りと利益を一括比較。目標利益から売値の逆算も。入力データは外部に送信されません。">
+<style>
+:root{--bg:#f6f5f0;--card:#fff;--ink:#1d2a33;--sub:#5d6b75;--line:#dcdad0;--ok:#0b7a5a;--okbg:#dff3ea;--ng:#b3372a;--acc:#1d2a33;--accfg:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12181d;--card:#1b242b;--ink:#eef1ee;--sub:#9aa8b1;--line:#2c3841;--ok:#5fd0a5;--okbg:#17342b;--ng:#ff8c7d;--acc:#eef1ee;--accfg:#12181d}}
+:root[data-theme="dark"]{--bg:#12181d;--card:#1b242b;--ink:#eef1ee;--sub:#9aa8b1;--line:#2c3841;--ok:#5fd0a5;--okbg:#17342b;--ng:#ff8c7d;--acc:#eef1ee;--accfg:#12181d}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.35rem;margin:8px 0 4px;letter-spacing:.01em}
+.lead{color:var(--sub);font-size:.88rem;margin:0 0 18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:14px}
+.seg button{border:0;background:none;color:var(--sub);font:inherit;font-size:.9rem;padding:9px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--acc);color:var(--accfg);font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:.8rem;color:var(--sub)}
+.in{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;background:var(--bg);margin-top:4px;padding:0 10px}
+.in:focus-within{outline:2px solid var(--ink);outline-offset:1px}
+.in input{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:inherit;font-size:16px;padding:10px 0;outline:0;text-align:right}
+.in span{color:var(--sub);font-size:.85rem;margin-left:4px}
+.full{grid-column:1/-1}
+.res{display:grid;gap:10px}
+.r{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.r.best{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
+.rh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rh b{font-size:1rem}
+.badge{font-size:.72rem;background:var(--okbg);color:var(--ok);padding:2px 8px;border-radius:99px;margin-left:6px;font-weight:600}
+.big{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.big.pos{color:var(--ok)}.big.neg{color:var(--ng)}
+.rows{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:.84rem;color:var(--sub);margin-top:8px;font-variant-numeric:tabular-nums}
+.rows div:nth-child(even){text-align:right;color:var(--ink)}
+.note{font-size:.78rem;color:var(--sub)}
+details{margin-top:8px}
+summary{cursor:pointer;font-size:.88rem;font-weight:600;padding:6px 0}
+.fee{display:grid;grid-template-columns:1fr 92px 92px;gap:8px;align-items:center;font-size:.82rem;margin-top:6px}
+.fee input{width:100%;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;padding:7px;text-align:right}
+.hd{color:var(--sub);font-size:.72rem}
+footer{font-size:.76rem;color:var(--sub);margin-top:24px}
+button.reset{font:inherit;font-size:.8rem;margin-top:10px;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+<h1>フリマ手数料・利益計算機</h1>
+<p class="lead">売値と仕入れ値を入れると、各サービスの手取りと利益を並べて比較します。入力は端末内で計算され、外部へ送信されません。</p>
+
+<section class="panel" aria-label="入力">
+  <div class="seg" role="group" aria-label="計算モード">
+    <button id="m1" aria-pressed="true">売値から利益を見る</button>
+    <button id="m2" aria-pressed="false">目標から売値を逆算</button>
+  </div>
+  <div class="grid">
+    <label class="full" id="priceWrap">販売価格（税込）
+      <div class="in"><input id="price" type="number" inputmode="numeric" min="0" value="3000"><span>円</span></div></label>
+    <label class="full" id="goalWrap" hidden>目標利益
+      <div class="in"><input id="goal" type="number" inputmode="numeric" min="0" value="1000"><span>円</span></div></label>
+    <label>仕入れ原価
+      <div class="in"><input id="cost" type="number" inputmode="numeric" min="0" value="1000"><span>円</span></div></label>
+    <label>送料（出品者負担）
+      <div class="in"><input id="ship" type="number" inputmode="numeric" min="0" value="700"><span>円</span></div></label>
+    <label class="full">梱包材・その他経費
+      <div class="in"><input id="other" type="number" inputmode="numeric" min="0" value="50"><span>円</span></div></label>
+  </div>
+</section>
+
+<section class="res" id="res" aria-live="polite"></section>
+
+<details class="panel">
+  <summary>手数料率を編集する</summary>
+  <p class="note">料率は改定されます。必ず各サービスの公式ヘルプで最新値を確認し、ここで書き換えてください（このブラウザに保存されます）。</p>
+  <div class="fee hd"><span>サービス</span><span>手数料率(%)</span><span>固定費(円)</span></div>
+  <div id="fees"></div>
+  <button class="reset" id="reset">初期値に戻す</button>
+</details>
+
+<footer>
+<p>初期値の根拠：メルカリ10%、Yahoo!フリマ5%、ラクマ10%、Amazon15%（カテゴリで8〜15%程度、別途FBA手数料やプラン料金がかかります）。振込手数料・キャンペーン・ポイント・消費税の扱い・事業者の売上税は含みません。参考値としてご利用ください。</p>
+</footer>
+</main>
+<script>
+(function(){
+var DEF=[
+ {id:"mercari",name:"メルカリ",rate:10,fixed:0},
+ {id:"yahoo",name:"Yahoo!フリマ",rate:5,fixed:0},
+ {id:"rakuma",name:"ラクマ",rate:10,fixed:0},
+ {id:"amazon",name:"Amazon（手数料率は要調整）",rate:15,fixed:0}
+];
+var KEY="furima-fees-v1";
+var P=load();
+var mode=1;
+function load(){try{var s=localStorage.getItem(KEY);if(s){var a=JSON.parse(s);if(Array.isArray(a)&&a.length===DEF.length)return a}}catch(e){}return JSON.parse(JSON.stringify(DEF))}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function n(i){var v=parseFloat($(i).value);return isFinite(v)&&v>0?v:0}
+function yen(x){return (x<0?"-":"")+"¥"+Math.round(Math.abs(x)).toLocaleString("ja-JP")}
+function render(){
+  var cost=n("cost")+n("ship")+n("other");
+  var items=P.map(function(p){
+    var r=p.rate/100,price,fee,profit;
+    if(mode===1){price=n("price");fee=price*r+p.fixed}
+    else{price=Math.ceil((n("goal")+cost+p.fixed)/(1-r));fee=price*r+p.fixed}
+    fee=Math.floor(fee);
+    profit=price-fee-cost;
+    return {name:p.name,price:price,fee:fee,net:price-fee,profit:profit,margin:price>0?profit/price*100:0};
+  });
+  var best=mode===1?Math.max.apply(null,items.map(function(i){return i.profit})):Math.min.apply(null,items.map(function(i){return i.price}));
+  var sorted=items.slice().sort(function(a,b){return mode===1?b.profit-a.profit:a.price-b.price});
+  $("res").innerHTML=sorted.map(function(i){
+    var isBest=(mode===1?i.profit:i.price)===best;
+    var main=mode===1?i.profit:i.price;
+    var cls=mode===1?(i.profit>=0?"pos":"neg"):"";
+    return '<div class="r'+(isBest?' best':'')+'"><div class="rh"><span><b>'+i.name+'</b>'+(isBest?'<span class="badge">'+(mode===1?'最も残る':'最安で達成')+'</span>':'')+'</span><span class="big '+cls+'">'+yen(main)+'</span></div>'
+    +'<div class="rows"><div>'+(mode===1?'利益':'必要な販売価格')+'</div><div>'+(mode===1?yen(i.profit):yen(i.price))+'</div>'
+    +'<div>販売価格</div><div>'+yen(i.price)+'</div><div>手数料</div><div>'+yen(i.fee)+'</div>'
+    +'<div>手取り（手数料引き後）</div><div>'+yen(i.net)+'</div>'
+    +'<div>利益率</div><div>'+i.margin.toFixed(1)+'%</div></div></div>';
+  }).join("");
+}
+function buildFees(){
+  $("fees").innerHTML=P.map(function(p,k){
+    return '<div class="fee"><span>'+p.name+'</span><input data-k="'+k+'" data-f="rate" type="number" inputmode="decimal" step="0.1" min="0" max="99" value="'+p.rate+'" aria-label="'+p.name+' 手数料率"><input data-k="'+k+'" data-f="fixed" type="number" inputmode="numeric" min="0" value="'+p.fixed+'" aria-label="'+p.name+' 固定費"></div>';
+  }).join("");
+}
+function setMode(m){
+  mode=m;
+  $("m1").setAttribute("aria-pressed",m===1);$("m2").setAttribute("aria-pressed",m===2);
+  $("priceWrap").hidden=m!==1;$("goalWrap").hidden=m!==2;
+  render();
+}
+["price","goal","cost","ship","other"].forEach(function(i){$(i).addEventListener("input",render)});
+$("m1").onclick=function(){setMode(1)};$("m2").onclick=function(){setMode(2)};
+$("fees").addEventListener("input",function(e){
+  var t=e.target,k=t.getAttribute("data-k");if(k===null)return;
+  var v=parseFloat(t.value);P[k][t.getAttribute("data-f")]=isFinite(v)&&v>=0?v:0;
+  save();render();
+});
+$("reset").onclick=function(){P=JSON.parse(JSON.stringify(DEF));save();buildFees();render()};
+buildFees();render();
+})();
+</script>
+</body>
+</html>
